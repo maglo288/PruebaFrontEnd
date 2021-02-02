@@ -34,7 +34,7 @@
               </div>
               <br />
               <div align="center">
-              <input type="button" class="button" @click="submitData"  value="Procesar"/>
+              <input type="button" id="procesar_ciudad" class="button" @click="submitData"  value="Procesar"/>
               </div>
             </div>
           </div>
@@ -56,11 +56,18 @@
 </template>
 
 <script>
+import Vue from 'vue';
 import axios from "axios";
 import moment from "moment";
 import VueGoogleCharts from 'vue-google-charts';
 import {GChart} from "vue-google-charts";
-import { createGtm } from "vue-gtm";
+import VueGtm from 'vue-gtm';
+
+Vue.use(VueGtm, {
+  enabled: true,
+  debug: true,
+ });
+ 
 export default {
   name: 'app',
   components: {
@@ -95,6 +102,7 @@ export default {
    methods: {
       getWeather() {
         let url = "http://api.openweathermap.org/data/2.5/weather?q="+this.city+"&lang=es&units=metric&APPID=e2f24e73b812a4242d9bdfba8c653ce0";
+        
         axios
           .get(url)
           .then(response => {
@@ -111,6 +119,13 @@ export default {
             this.sunset = moment.unix(response.data.sys.sunset).format('hh:mm A');
             this.lon = response.data.coord.lon;
             this.lat = response.data.coord.lat;
+
+            this.$gtm.trackEvent({
+              event: 'ga_event',
+              category: "Aplicativo",
+              action: this.name_city,
+              label: this.currentTemp
+           });
         })
         .catch(error => {
           console.log(error);
@@ -154,6 +169,10 @@ export default {
    },
    
    beforeMount() {
+      Vue.use(VueGtm, {
+        enabled: true,
+        debug: true,
+      });
       this.getWeather();
       this.getDataGrafics();
     },
